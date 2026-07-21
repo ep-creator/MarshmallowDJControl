@@ -98,6 +98,9 @@
     <button id="btn-mic" class="btn-mic">Desligado (Toque para Falar)</button>
 
     <script>
+        // NOME DA SUA PASTA DE ÁUDIO
+        const pastaSons = 'sons/'; // Se você chamou a pasta de "audio", mude para 'audio/'
+
         // 1. CONFIGURAÇÃO DOS SONS
         const sons = [
             { id: 'apito', label: 'Apito do Juiz', arquivo: 'apito.mp3' },
@@ -108,55 +111,47 @@
 
         // 2. GERAR BOTÕES E LÓGICA DE REPRODUÇÃO
         const grid = document.getElementById('sound-grid');
-
-        // Variáveis globais para rastrear o que está tocando
+        
         let audioAtual = null;
         let botaoAtivo = null;
-
+        
         sons.forEach(som => {
             const btn = document.createElement('button');
             btn.className = 'btn-som';
             btn.innerText = som.label;
-
-            const audioObj = new Audio(som.arquivo);
-
-            // Quando o áudio terminar naturalmente, devolve o botão ao estado normal
+            
+            // Aqui está a mágica: juntamos a pasta + o nome do arquivo
+            const caminhoCompleto = pastaSons + som.arquivo;
+            const audioObj = new Audio(caminhoCompleto);
+            
             audioObj.addEventListener('ended', () => {
                 btn.classList.remove('tocando');
                 btn.innerText = som.label;
                 audioAtual = null;
                 botaoAtivo = null;
             });
-
+            
             btn.onclick = () => {
-                // REGRA: Se já tem um áudio tocando na mesa
                 if (audioAtual) {
                     if (botaoAtivo === btn) {
-                        // O usuário apertou o MESMO botão que está tocando: Pausa e Reseta
                         audioAtual.pause();
-                        audioAtual.currentTime = 0; // Volta para o segundo zero
+                        audioAtual.currentTime = 0; 
                         btn.classList.remove('tocando');
                         btn.innerText = som.label;
                         audioAtual = null;
                         botaoAtivo = null;
-                    } else {
-                        // O usuário apertou OUTRO botão: Ignora a ação
-                        console.log("Aguarde o som atual terminar para tocar outro.");
                     }
-                    return; // Interrompe a execução do clique aqui
+                    return; 
                 }
 
-                // REGRA: Se a mesa está em silêncio, toca o áudio deste botão
                 audioAtual = audioObj;
                 botaoAtivo = btn;
-
-                // Feedback visual: Adiciona a classe CSS e muda o texto
+                
                 btn.classList.add('tocando');
-                btn.innerText = "⏹️ Parar";
-
+                btn.innerText = "⏹️ Parar"; 
+                
                 audioAtual.play().catch(erro => {
                     console.error("Erro ao tocar:", erro);
-                    // Se der erro (ex: arquivo não encontrado), reseta a tela
                     btn.classList.remove('tocando');
                     btn.innerText = som.label;
                     audioAtual = null;
@@ -166,7 +161,7 @@
             grid.appendChild(btn);
         });
 
-        // 3. LÓGICA DO MICROFONE (Web Audio API)
+        // 3. LÓGICA DO MICROFONE (Continua igual)
         const btnMic = document.getElementById('btn-mic');
         let audioContext;
         let mediaStream;
@@ -177,18 +172,18 @@
             if (micAtivo) {
                 mediaStream.getTracks().forEach(track => track.stop());
                 audioContext.close();
-
+                
                 micAtivo = false;
                 btnMic.classList.remove('ativo');
                 btnMic.innerText = 'Desligado (Toque para Falar)';
             } else {
                 try {
-                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ 
                         audio: {
-                            echoCancellation: false,
+                            echoCancellation: false, 
                             noiseSuppression: false,
                             autoGainControl: false
-                        }
+                        } 
                     });
 
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
