@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,14 +7,11 @@
     <style>
         :root {
             --bg-color: #121212;
-            --btn-som: #3498db;
-            --btn-som-tocando: #f39c12;
-            /* Cor amarela/laranja para indicar que está ativo */
             --btn-mic-off: #e74c3c;
             --btn-mic-on: #2ecc71;
             --text: #ffffff;
         }
-
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -28,10 +24,7 @@
             box-sizing: border-box;
         }
 
-        h1 {
-            text-align: center;
-            margin-top: 0;
-        }
+        h1 { text-align: center; margin-top: 0; }
 
         .sound-grid {
             display: grid;
@@ -42,7 +35,7 @@
         }
 
         button {
-            border: none;
+            border: 2px solid transparent; /* Preparado para o efeito de tocar */
             border-radius: 12px;
             font-size: 1.2rem;
             font-weight: bold;
@@ -55,22 +48,16 @@
             justify-content: center;
             text-align: center;
             padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        button:active {
-            transform: scale(0.95);
-            filter: brightness(0.8);
-        }
+        button:active { transform: scale(0.95); filter: brightness(0.8); }
 
-        .btn-som {
-            background-color: var(--btn-som);
-        }
-
-        /* Efeito de brilho e mudança de cor quando o botão está tocando */
-        .btn-som.tocando {
-            background-color: var(--btn-som-tocando);
-            box-shadow: 0 0 15px rgba(243, 156, 18, 0.6);
-            border: 2px solid #fff;
+        /* Efeito de botão tocando (agora preserva a cor de fundo do botão) */
+        .btn-som.tocando { 
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            filter: brightness(1.2);
         }
 
         .btn-mic {
@@ -79,17 +66,15 @@
             font-size: 1.5rem;
             width: 100%;
             height: 100px;
+            margin-top: auto;
         }
 
-        .btn-mic.ativo {
-            background-color: var(--btn-mic-on);
-        }
+        .btn-mic.ativo { background-color: var(--btn-mic-on); }
     </style>
 </head>
-
 <body>
 
-    <h1> Marshmallow DJ Control</h1>
+    <h1>🎙️ Marshmallow DJ Control</h1>
 
     <div class="sound-grid" id="sound-grid">
         <!-- Botões gerados via JavaScript -->
@@ -98,15 +83,16 @@
     <button id="btn-mic" class="btn-mic">Desligado (Toque para Falar)</button>
 
     <script>
-        // NOME DA SUA PASTA DE ÁUDIO
-        const pastaSons = 'sons/'; // Se você chamou a pasta de "audio", mude para 'audio/'
+        const pastaSons = 'sons/'; 
 
-        // 1. CONFIGURAÇÃO DOS SONS
+        // 1. CONFIGURAÇÃO DOS SONS E CORES
+        // Você pode trocar as cores substituindo o valor de 'cor' por outro Hexadecimal ou nome (ex: 'red', 'blue')
         const sons = [
-            { id: 'apito', label: 'Apito do Juiz', arquivo: 'apito.mp3' },
-            { id: 'gol', label: '⚽ GOL!', arquivo: 'gol.mp3' },
-            { id: 'torcida', label: 'Grito Torcida', arquivo: 'torcida.mp3' },
-            { id: 'falta', label: 'Falta / Erro', arquivo: 'falta.mp3' }
+            { id: 'gol_brasil', label: 'Gol Brasil', arquivo: 'gol brasil.mp3', cor: '#f1c40f' },     // Amarelo
+            { id: 'gol_fox', label: 'Gol Fox', arquivo: 'gol fox.mp3', cor: '#3498db' },           // Azul
+            { id: 'hino_champions', label: 'Hino Champions', arquivo: 'hino champions.mp3', cor: '#9b59b6' }, // Roxo
+            { id: 'tropa_empurra', label: 'Tropa do Empurra', arquivo: 'tropa do empurra.mp3', cor: '#e67e22' }, // Laranja
+            { id: 'wonderwall', label: 'Wonderwall Live', arquivo: 'wonderwall live.mp3', cor: '#1abc9c' } // Verde Água
         ];
 
         // 2. GERAR BOTÕES E LÓGICA DE REPRODUÇÃO
@@ -120,7 +106,9 @@
             btn.className = 'btn-som';
             btn.innerText = som.label;
             
-            // Aqui está a mágica: juntamos a pasta + o nome do arquivo
+            // Aplica a cor customizada definida na lista acima
+            btn.style.backgroundColor = som.cor;
+            
             const caminhoCompleto = pastaSons + som.arquivo;
             const audioObj = new Audio(caminhoCompleto);
             
@@ -161,7 +149,7 @@
             grid.appendChild(btn);
         });
 
-        // 3. LÓGICA DO MICROFONE (Continua igual)
+        // 3. LÓGICA DO MICROFONE (Web Audio API)
         const btnMic = document.getElementById('btn-mic');
         let audioContext;
         let mediaStream;
@@ -202,5 +190,4 @@
         };
     </script>
 </body>
-
 </html>
