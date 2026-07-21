@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Torneio Soundboard</title>
+    <title>Marshmallow DJ Control</title>
     <style>
         :root {
             --bg-color: #121212;
             --btn-som: #3498db;
-            --btn-som-tocando: #f39c12; /* Cor amarela/laranja para indicar que está ativo */
+            --btn-som-tocando: #f39c12;
+            /* Cor amarela/laranja para indicar que está ativo */
             --btn-mic-off: #e74c3c;
             --btn-mic-on: #2ecc71;
             --text: #ffffff;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -26,7 +28,10 @@
             box-sizing: border-box;
         }
 
-        h1 { text-align: center; margin-top: 0; }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+        }
 
         .sound-grid {
             display: grid;
@@ -52,12 +57,17 @@
             padding: 10px;
         }
 
-        button:active { transform: scale(0.95); filter: brightness(0.8); }
+        button:active {
+            transform: scale(0.95);
+            filter: brightness(0.8);
+        }
 
-        .btn-som { background-color: var(--btn-som); }
-        
+        .btn-som {
+            background-color: var(--btn-som);
+        }
+
         /* Efeito de brilho e mudança de cor quando o botão está tocando */
-        .btn-som.tocando { 
+        .btn-som.tocando {
             background-color: var(--btn-som-tocando);
             box-shadow: 0 0 15px rgba(243, 156, 18, 0.6);
             border: 2px solid #fff;
@@ -71,9 +81,12 @@
             height: 100px;
         }
 
-        .btn-mic.ativo { background-color: var(--btn-mic-on); }
+        .btn-mic.ativo {
+            background-color: var(--btn-mic-on);
+        }
     </style>
 </head>
+
 <body>
 
     <h1>🎙️ Mesa do Torneio</h1>
@@ -95,18 +108,18 @@
 
         // 2. GERAR BOTÕES E LÓGICA DE REPRODUÇÃO
         const grid = document.getElementById('sound-grid');
-        
+
         // Variáveis globais para rastrear o que está tocando
         let audioAtual = null;
         let botaoAtivo = null;
-        
+
         sons.forEach(som => {
             const btn = document.createElement('button');
             btn.className = 'btn-som';
             btn.innerText = som.label;
-            
+
             const audioObj = new Audio(som.arquivo);
-            
+
             // Quando o áudio terminar naturalmente, devolve o botão ao estado normal
             audioObj.addEventListener('ended', () => {
                 btn.classList.remove('tocando');
@@ -114,7 +127,7 @@
                 audioAtual = null;
                 botaoAtivo = null;
             });
-            
+
             btn.onclick = () => {
                 // REGRA: Se já tem um áudio tocando na mesa
                 if (audioAtual) {
@@ -136,11 +149,11 @@
                 // REGRA: Se a mesa está em silêncio, toca o áudio deste botão
                 audioAtual = audioObj;
                 botaoAtivo = btn;
-                
+
                 // Feedback visual: Adiciona a classe CSS e muda o texto
                 btn.classList.add('tocando');
-                btn.innerText = "⏹️ Parar"; 
-                
+                btn.innerText = "⏹️ Parar";
+
                 audioAtual.play().catch(erro => {
                     console.error("Erro ao tocar:", erro);
                     // Se der erro (ex: arquivo não encontrado), reseta a tela
@@ -164,18 +177,18 @@
             if (micAtivo) {
                 mediaStream.getTracks().forEach(track => track.stop());
                 audioContext.close();
-                
+
                 micAtivo = false;
                 btnMic.classList.remove('ativo');
                 btnMic.innerText = 'Desligado (Toque para Falar)';
             } else {
                 try {
-                    mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
                         audio: {
-                            echoCancellation: false, 
+                            echoCancellation: false,
                             noiseSuppression: false,
                             autoGainControl: false
-                        } 
+                        }
                     });
 
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -194,4 +207,5 @@
         };
     </script>
 </body>
+
 </html>
