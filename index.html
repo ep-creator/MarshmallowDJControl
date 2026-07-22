@@ -20,7 +20,7 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            min-height: 100vh;
             box-sizing: border-box;
         }
 
@@ -35,11 +35,10 @@
         }
 
         button {
-            border: 2px solid transparent; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 12px;
             font-size: 1.2rem;
             font-weight: bold;
-            color: var(--text);
             cursor: pointer;
             transition: all 0.2s;
             touch-action: manipulation;
@@ -47,20 +46,22 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 10px;
+            padding: 15px 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         button:active { transform: scale(0.95); filter: brightness(0.8); }
 
+        /* Efeito visual de botão tocando */
         .btn-som.tocando { 
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            border: 3px solid #ffffff !important;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
             filter: brightness(1.2);
         }
 
         .btn-mic {
             background-color: var(--btn-mic-off);
+            color: #ffffff;
             padding: 25px;
             font-size: 1.5rem;
             width: 100%;
@@ -84,18 +85,23 @@
     <script>
         const pastaSons = 'sons/'; 
 
-        // 1. CONFIGURAÇÃO DOS SONS E CORES ATUALIZADA
+        // 1. CONFIGURAÇÃO REORDENADA E COM NOVAS CORES
         const sons = [
-            { id: 'gol_brasil', label: 'Gol Brasil', arquivo: 'gol brasil.mp3', cor: '#f1c40f' },
-            { id: 'gol_casca_grossa', label: 'Gol Casca Grossa', arquivo: 'gol casca grossa.mp3', cor: '#e74c3c' },
-            { id: 'gol_do_mago', label: 'Gol do Mago', arquivo: 'gol do mago.mp3', cor: '#8e44ad' },
-            { id: 'gol_empurra', label: 'Gol Empurra', arquivo: 'gol empurra.mp3', cor: '#34495e' },
-            { id: 'gol_fox', label: 'Gol Fox', arquivo: 'gol fox.mp3', cor: '#3498db' },
-            { id: 'gol_tropa', label: 'Gol Tropa', arquivo: 'gol tropa.mp3', cor: '#2c3e50' },
-            { id: 'gol_ugoslavia', label: 'Gol Ugoslávia', arquivo: 'gol ugoslavia.mp3', cor: '#c0392b' },
-            { id: 'hino_champions', label: 'Hino Champions', arquivo: 'hino champions.mp3', cor: '#9b59b6' },
-            { id: 'tropa_empurra', label: 'Tropa do Empurra', arquivo: 'tropa do empurra.mp3', cor: '#e67e22' },
-            { id: 'wonderwall', label: 'Wonderwall Live', arquivo: 'wonderwall live.mp3', cor: '#1abc9c' }
+            // --- OS 4 PRINCIPAIS (TOPO) ---
+            { id: 'gol_casca_grossa', label: 'Gol Casca Grossa', arquivo: 'gol casca grossa.mp3', cor: '#ffffff', corTexto: '#000000' },
+            { id: 'gol_empurra', label: 'Gol Empurra', arquivo: 'gol empurra.mp3', cor: '#e67e22', corTexto: '#ffffff' },
+            { id: 'gol_tropa', label: 'Gol Tropa', arquivo: 'gol tropa.mp3', cor: '#1e1e1e', corTexto: '#ffffff' },
+            { id: 'gol_ugoslavia', label: 'Gol Ugoslávia', arquivo: 'gol ugoslavia.mp3', cor: '#e74c3c', corTexto: '#ffffff' },
+
+            // --- OUTROS GOLS ---
+            { id: 'gol_do_mago', label: '🧙‍♂️ Gol do Mago', arquivo: 'gol do mago.mp3', cor: '#8e44ad', corTexto: '#ffffff' },
+            { id: 'gol_brasil', label: 'Gol Brasil', arquivo: 'gol brasil.mp3', cor: '#f1c40f', corTexto: '#000000' },
+            { id: 'gol_fox', label: 'Gol Fox', arquivo: 'gol fox.mp3', cor: '#3498db', corTexto: '#ffffff' },
+            { id: 'tropa_empurra', label: 'Tropa do Empurra', arquivo: 'tropa do empurra.mp3', cor: '#d35400', corTexto: '#ffffff' },
+
+            // --- MÚSICAS (FINAL) ---
+            { id: 'hino_champions', label: '🏆 Hino Champions', arquivo: 'hino champions.mp3', cor: '#2c3e50', corTexto: '#ffffff' },
+            { id: 'wonderwall', label: '🎸 Wonderwall Live', arquivo: 'wonderwall live.mp3', cor: '#1abc9c', corTexto: '#ffffff' }
         ];
 
         // 2. GERAR BOTÕES E LÓGICA DE REPRODUÇÃO
@@ -108,11 +114,11 @@
             const btn = document.createElement('button');
             btn.className = 'btn-som';
             btn.innerText = som.label;
-            
-            // Guarda o nome original no botão para restaurar mais tarde
             btn.dataset.label = som.label; 
             
+            // Aplica cor de fundo e cor de texto personalizadas
             btn.style.backgroundColor = som.cor;
+            btn.style.color = som.corTexto || '#ffffff';
             
             const caminhoCompleto = pastaSons + som.arquivo;
             const audioObj = new Audio(caminhoCompleto);
@@ -125,7 +131,7 @@
             });
             
             btn.onclick = () => {
-                // SITUAÇÃO 1: Clicou no MESMO botão que já está tocando (Pausa e desliga)
+                // SITUAÇÃO 1: Clicou no MESMO botão que está tocando (Pausa e reseta)
                 if (audioAtual && botaoAtivo === btn) {
                     audioAtual.pause();
                     audioAtual.currentTime = 0; 
@@ -136,7 +142,7 @@
                     return; 
                 }
 
-                // SITUAÇÃO 2: Clicou num botão DIFERENTE enquanto outro tocava (Corta o antigo)
+                // SITUAÇÃO 2: Clicou em OUTRO botão (Interrompe o anterior e toca o novo)
                 if (audioAtual && botaoAtivo !== btn) {
                     audioAtual.pause();
                     audioAtual.currentTime = 0;
@@ -144,7 +150,6 @@
                     botaoAtivo.innerText = botaoAtivo.dataset.label; 
                 }
 
-                // Inicia o áudio do botão clicado
                 audioAtual = audioObj;
                 botaoAtivo = btn;
                 
