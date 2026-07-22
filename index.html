@@ -35,7 +35,7 @@
         }
 
         button {
-            border: 2px solid transparent; /* Preparado para o efeito de tocar */
+            border: 2px solid transparent; 
             border-radius: 12px;
             font-size: 1.2rem;
             font-weight: bold;
@@ -53,7 +53,6 @@
 
         button:active { transform: scale(0.95); filter: brightness(0.8); }
 
-        /* Efeito de botão tocando (agora preserva a cor de fundo do botão) */
         .btn-som.tocando { 
             border: 2px solid #ffffff;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
@@ -85,14 +84,18 @@
     <script>
         const pastaSons = 'sons/'; 
 
-        // 1. CONFIGURAÇÃO DOS SONS E CORES
-        // Você pode trocar as cores substituindo o valor de 'cor' por outro Hexadecimal ou nome (ex: 'red', 'blue')
+        // 1. CONFIGURAÇÃO DOS SONS E CORES ATUALIZADA
         const sons = [
-            { id: 'gol_brasil', label: 'Gol Brasil', arquivo: 'gol brasil.mp3', cor: '#f1c40f' },     // Amarelo
-            { id: 'gol_fox', label: 'Gol Fox', arquivo: 'gol fox.mp3', cor: '#3498db' },           // Azul
-            { id: 'hino_champions', label: 'Hino Champions', arquivo: 'hino champions.mp3', cor: '#9b59b6' }, // Roxo
-            { id: 'tropa_empurra', label: 'Tropa do Empurra', arquivo: 'tropa do empurra.mp3', cor: '#e67e22' }, // Laranja
-            { id: 'wonderwall', label: 'Wonderwall Live', arquivo: 'wonderwall live.mp3', cor: '#1abc9c' } // Verde Água
+            { id: 'gol_brasil', label: 'Gol Brasil', arquivo: 'gol brasil.mp3', cor: '#f1c40f' },
+            { id: 'gol_casca_grossa', label: 'Gol Casca Grossa', arquivo: 'gol casca grossa.mp3', cor: '#e74c3c' },
+            { id: 'gol_do_mago', label: 'Gol do Mago', arquivo: 'gol do mago.mp3', cor: '#8e44ad' },
+            { id: 'gol_empurra', label: 'Gol Empurra', arquivo: 'gol empurra.mp3', cor: '#34495e' },
+            { id: 'gol_fox', label: 'Gol Fox', arquivo: 'gol fox.mp3', cor: '#3498db' },
+            { id: 'gol_tropa', label: 'Gol Tropa', arquivo: 'gol tropa.mp3', cor: '#2c3e50' },
+            { id: 'gol_ugoslavia', label: 'Gol Ugoslávia', arquivo: 'gol ugoslavia.mp3', cor: '#c0392b' },
+            { id: 'hino_champions', label: 'Hino Champions', arquivo: 'hino champions.mp3', cor: '#9b59b6' },
+            { id: 'tropa_empurra', label: 'Tropa do Empurra', arquivo: 'tropa do empurra.mp3', cor: '#e67e22' },
+            { id: 'wonderwall', label: 'Wonderwall Live', arquivo: 'wonderwall live.mp3', cor: '#1abc9c' }
         ];
 
         // 2. GERAR BOTÕES E LÓGICA DE REPRODUÇÃO
@@ -106,7 +109,9 @@
             btn.className = 'btn-som';
             btn.innerText = som.label;
             
-            // Aplica a cor customizada definida na lista acima
+            // Guarda o nome original no botão para restaurar mais tarde
+            btn.dataset.label = som.label; 
+            
             btn.style.backgroundColor = som.cor;
             
             const caminhoCompleto = pastaSons + som.arquivo;
@@ -114,24 +119,32 @@
             
             audioObj.addEventListener('ended', () => {
                 btn.classList.remove('tocando');
-                btn.innerText = som.label;
+                btn.innerText = btn.dataset.label;
                 audioAtual = null;
                 botaoAtivo = null;
             });
             
             btn.onclick = () => {
-                if (audioAtual) {
-                    if (botaoAtivo === btn) {
-                        audioAtual.pause();
-                        audioAtual.currentTime = 0; 
-                        btn.classList.remove('tocando');
-                        btn.innerText = som.label;
-                        audioAtual = null;
-                        botaoAtivo = null;
-                    }
+                // SITUAÇÃO 1: Clicou no MESMO botão que já está tocando (Pausa e desliga)
+                if (audioAtual && botaoAtivo === btn) {
+                    audioAtual.pause();
+                    audioAtual.currentTime = 0; 
+                    btn.classList.remove('tocando');
+                    btn.innerText = btn.dataset.label;
+                    audioAtual = null;
+                    botaoAtivo = null;
                     return; 
                 }
 
+                // SITUAÇÃO 2: Clicou num botão DIFERENTE enquanto outro tocava (Corta o antigo)
+                if (audioAtual && botaoAtivo !== btn) {
+                    audioAtual.pause();
+                    audioAtual.currentTime = 0;
+                    botaoAtivo.classList.remove('tocando');
+                    botaoAtivo.innerText = botaoAtivo.dataset.label; 
+                }
+
+                // Inicia o áudio do botão clicado
                 audioAtual = audioObj;
                 botaoAtivo = btn;
                 
@@ -141,7 +154,7 @@
                 audioAtual.play().catch(erro => {
                     console.error("Erro ao tocar:", erro);
                     btn.classList.remove('tocando');
-                    btn.innerText = som.label;
+                    btn.innerText = btn.dataset.label;
                     audioAtual = null;
                     botaoAtivo = null;
                 });
@@ -149,7 +162,7 @@
             grid.appendChild(btn);
         });
 
-        // 3. LÓGICA DO MICROFONE (Web Audio API)
+        // 3. LÓGICA DO MICROFONE
         const btnMic = document.getElementById('btn-mic');
         let audioContext;
         let mediaStream;
