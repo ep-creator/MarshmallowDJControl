@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -11,10 +12,11 @@
             --btn-mic-on: #2ecc71;
             --text: #ffffff;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: bold; /* Aplica o negrito globalmente */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-weight: bold;
+            /* Aplica o negrito globalmente */
             background-color: var(--bg-color);
             color: var(--text);
             margin: 0;
@@ -25,9 +27,9 @@
             box-sizing: border-box;
         }
 
-        h1 { 
-            text-align: center; 
-            margin-top: 0; 
+        h1 {
+            text-align: center;
+            margin-top: 0;
             font-size: 1.8rem;
             font-weight: 800;
         }
@@ -41,9 +43,9 @@
         }
 
         button {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-weight: bold;
-            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             font-size: 1.2rem;
             cursor: pointer;
@@ -54,13 +56,16 @@
             justify-content: center;
             text-align: center;
             padding: 15px 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
 
-        button:active { transform: scale(0.95); filter: brightness(0.8); }
+        button:active {
+            transform: scale(0.95);
+            filter: brightness(0.8);
+        }
 
         /* Efeito visual de botão tocando */
-        .btn-som.tocando { 
+        .btn-som.tocando {
             border: 3px solid #ffffff !important;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
             filter: brightness(1.2);
@@ -76,9 +81,12 @@
             margin-top: auto;
         }
 
-        .btn-mic.ativo { background-color: var(--btn-mic-on); }
+        .btn-mic.ativo {
+            background-color: var(--btn-mic-on);
+        }
     </style>
 </head>
+
 <body>
 
     <h1>🎙️ Marshmallow DJ Control</h1>
@@ -91,7 +99,7 @@
     <button id="btn-mic" class="btn-mic">🎙️ MICROFONE</button>
 
     <script>
-        const pastaSons = 'sons/'; 
+        const pastaSons = 'sons/';
 
         // 1. CONFIGURAÇÃO DOS SONS E CORES
         const sons = [
@@ -114,53 +122,53 @@
 
         // 2. GERAR BOTÕES E LÓGICA DE REPRODUÇÃO
         const grid = document.getElementById('sound-grid');
-        
+
         let audioAtual = null;
         let botaoAtivo = null;
-        
+
         sons.forEach(som => {
             const btn = document.createElement('button');
             btn.className = 'btn-som';
             btn.innerText = som.label;
-            btn.dataset.label = som.label; 
-            
+            btn.dataset.label = som.label;
+
             btn.style.backgroundColor = som.cor;
             btn.style.color = som.corTexto || '#ffffff';
-            
+
             const caminhoCompleto = pastaSons + som.arquivo;
             const audioObj = new Audio(caminhoCompleto);
-            
+
             audioObj.addEventListener('ended', () => {
                 btn.classList.remove('tocando');
                 btn.innerText = btn.dataset.label;
                 audioAtual = null;
                 botaoAtivo = null;
             });
-            
+
             btn.onclick = () => {
                 if (audioAtual && botaoAtivo === btn) {
                     audioAtual.pause();
-                    audioAtual.currentTime = 0; 
+                    audioAtual.currentTime = 0;
                     btn.classList.remove('tocando');
                     btn.innerText = btn.dataset.label;
                     audioAtual = null;
                     botaoAtivo = null;
-                    return; 
+                    return;
                 }
 
                 if (audioAtual && botaoAtivo !== btn) {
                     audioAtual.pause();
                     audioAtual.currentTime = 0;
                     botaoAtivo.classList.remove('tocando');
-                    botaoAtivo.innerText = botaoAtivo.dataset.label; 
+                    botaoAtivo.innerText = botaoAtivo.dataset.label;
                 }
 
                 audioAtual = audioObj;
                 botaoAtivo = btn;
-                
+
                 btn.classList.add('tocando');
-                btn.innerText = "⏹️ Parar"; 
-                
+                btn.innerText = "⏹️ Parar";
+
                 audioAtual.play().catch(erro => {
                     console.error("Erro ao tocar:", erro);
                     btn.classList.remove('tocando');
@@ -183,18 +191,18 @@
             if (micAtivo) {
                 mediaStream.getTracks().forEach(track => track.stop());
                 audioContext.close();
-                
+
                 micAtivo = false;
                 btnMic.classList.remove('ativo');
                 btnMic.innerText = '🎙️ MICROFONE';
             } else {
                 try {
-                    mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
                         audio: {
-                            echoCancellation: false, 
+                            echoCancellation: false,
                             noiseSuppression: false,
                             autoGainControl: false
-                        } 
+                        }
                     });
 
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -213,4 +221,5 @@
         };
     </script>
 </body>
+
 </html>
