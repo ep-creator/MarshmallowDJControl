@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <!-- Diz para o iPhone que isso é um App e deve abrir em tela cheia -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- Deixa a barrinha da bateria e do relógio preta para combinar com o seu layout -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Configurações para salvar na tela inicial do iPhone -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Marshmallow DJ Control</title>
     <style>
         :root {
@@ -16,42 +14,57 @@
             --btn-mic-on: #2ecc71;
             --text: #ffffff;
         }
-
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-weight: bold;
-            /* Aplica o negrito globalmente */
             background-color: var(--bg-color);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 0; /* Removido o padding geral para a barra do mic colar no fundo */
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh; /* Trava o tamanho do app na tela do celular */
             box-sizing: border-box;
+            overflow: hidden; /* Evita que a página inteira role, só a área dos botões */
         }
 
-        h1 {
-            text-align: center;
-            margin-top: 0;
+        h1 { 
+            text-align: center; 
+            margin: 20px 0 10px 0; 
             font-size: 1.8rem;
             font-weight: 800;
+        }
+
+        /* Área onde ficam os botões, com scroll independente */
+        .conteudo-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Scroll suave no iPhone */
+            padding: 0 20px 20px 20px;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            color: #aaaaaa;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .sound-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            flex-grow: 1;
-            margin-bottom: 20px;
         }
 
         button {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-weight: bold;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 12px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.2s;
             touch-action: manipulation;
@@ -60,131 +73,144 @@
             justify-content: center;
             text-align: center;
             padding: 15px 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            min-height: 70px;
         }
 
-        button:active {
-            transform: scale(0.95);
-            filter: brightness(0.8);
-        }
+        button:active { transform: scale(0.95); filter: brightness(0.8); }
 
-        /* Efeito visual de botão tocando */
-        .btn-som.tocando {
+        .btn-som.tocando { 
             border: 3px solid #ffffff !important;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
             filter: brightness(1.2);
         }
 
+        /* Botão do mic fixo embaixo */
         .btn-mic {
             background-color: var(--btn-mic-off);
             color: #ffffff;
             padding: 25px;
             font-size: 1.5rem;
             width: 100%;
-            height: 100px;
-            margin-top: auto;
+            height: 90px;
+            border-radius: 0; /* Tira borda arredondada para encaixar no fundo */
+            border: none;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            z-index: 10;
         }
 
-        .btn-mic.ativo {
-            background-color: var(--btn-mic-on);
-        }
+        .btn-mic.ativo { background-color: var(--btn-mic-on); }
     </style>
 </head>
-
 <body>
 
     <h1>🎙️ Marshmallow DJ Control</h1>
 
-    <div class="sound-grid" id="sound-grid">
-        <!-- Botões gerados via JavaScript -->
+    <!-- ÁREA DE SCROLL (Botões ficam aqui dentro) -->
+    <div class="conteudo-scroll">
+        
+        <h2>⚽ Sons do Evento</h2>
+        <div class="sound-grid" id="grid-eventos"></div>
+
+        <h2>🎵 Músicas</h2>
+        <div class="sound-grid" id="grid-musicas"></div>
+
     </div>
 
-    <!-- Botão do microfone -->
+    <!-- BOTÃO DO MIC (Fica de fora do scroll para travar no fundo) -->
     <button id="btn-mic" class="btn-mic">🎙️ MICROFONE</button>
 
     <script>
-        const pastaSons = 'sons/';
+        const pastaSons = 'sons/'; 
 
-        // 1. CONFIGURAÇÃO DOS SONS E CORES
-        const sons = [
-            // --- OS 4 PRINCIPAIS (TOPO) ---
+        // 1. LISTA 1: SONS RÁPIDOS E GOLS
+        const sonsEvento = [
             { id: 'gol_casca_grossa', label: 'Gol Casca Grossa', arquivo: 'gol casca grossa.mp3', cor: '#ffffff', corTexto: '#000000' },
             { id: 'gol_empurra', label: 'Gol Empurra', arquivo: 'gol empurra.mp3', cor: '#e67e22', corTexto: '#ffffff' },
             { id: 'gol_tropa', label: 'Gol Tropa', arquivo: 'gol tropa.mp3', cor: '#1e1e1e', corTexto: '#ffffff' },
             { id: 'gol_ugoslavia', label: 'Gol Ugoslávia', arquivo: 'gol ugoslavia.mp3', cor: '#e74c3c', corTexto: '#ffffff' },
-
-            // --- OUTROS GOLS ---
             { id: 'gol_do_mago', label: '🧙‍♂️ Gol do Mago', arquivo: 'gol do mago.mp3', cor: '#8e44ad', corTexto: '#ffffff' },
             { id: 'gol_brasil', label: 'Gol Brasil', arquivo: 'gol brasil.mp3', cor: '#f1c40f', corTexto: '#000000' },
             { id: 'gol_fox', label: 'Gol Fox', arquivo: 'gol fox.mp3', cor: '#3498db', corTexto: '#ffffff' },
-            { id: 'tropa_empurra', label: 'Tropa do Empurra', arquivo: 'tropa do empurra.mp3', cor: '#d35400', corTexto: '#ffffff' },
-
-            // --- MÚSICAS (FINAL) ---
-            { id: 'hino_champions', label: '🏆 Hino Champions', arquivo: 'hino champions.mp3', cor: '#2c3e50', corTexto: '#ffffff' },
-            { id: 'wonderwall', label: '🎸 Wonderwall Live', arquivo: 'wonderwall live.mp3', cor: '#1abc9c', corTexto: '#ffffff' }
+            { id: 'tropa_empurra', label: 'Tropa do Empurra', arquivo: 'tropa do empurra.mp3', cor: '#d35400', corTexto: '#ffffff' }
         ];
 
-        // 2. GERAR BOTÕES E LÓGICA DE REPRODUÇÃO
-        const grid = document.getElementById('sound-grid');
+        // 2. LISTA 2: MÚSICAS COMPLETAS
+        const musicas = [
+            { id: 'hino_champions', label: '🏆 Hino Champions', arquivo: 'hino champions.mp3', cor: '#2c3e50', corTexto: '#ffffff' },
+            { id: 'wonderwall', label: '🎸 Wonderwall Live', arquivo: 'wonderwall live.mp3', cor: '#1abc9c', corTexto: '#ffffff' }
+            // Pode ir adicionando as próximas músicas aqui embaixo!
+        ];
 
+        // Variáveis globais de áudio (mantêm o controle não importa a sessão)
         let audioAtual = null;
         let botaoAtivo = null;
 
-        sons.forEach(som => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-som';
-            btn.innerText = som.label;
-            btn.dataset.label = som.label;
-
-            btn.style.backgroundColor = som.cor;
-            btn.style.color = som.corTexto || '#ffffff';
-
-            const caminhoCompleto = pastaSons + som.arquivo;
-            const audioObj = new Audio(caminhoCompleto);
-
-            audioObj.addEventListener('ended', () => {
-                btn.classList.remove('tocando');
-                btn.innerText = btn.dataset.label;
-                audioAtual = null;
-                botaoAtivo = null;
-            });
-
-            btn.onclick = () => {
-                if (audioAtual && botaoAtivo === btn) {
-                    audioAtual.pause();
-                    audioAtual.currentTime = 0;
-                    btn.classList.remove('tocando');
-                    btn.innerText = btn.dataset.label;
-                    audioAtual = null;
-                    botaoAtivo = null;
-                    return;
-                }
-
-                if (audioAtual && botaoAtivo !== btn) {
-                    audioAtual.pause();
-                    audioAtual.currentTime = 0;
-                    botaoAtivo.classList.remove('tocando');
-                    botaoAtivo.innerText = botaoAtivo.dataset.label;
-                }
-
-                audioAtual = audioObj;
-                botaoAtivo = btn;
-
-                btn.classList.add('tocando');
-                btn.innerText = "⏹️ Parar";
-
-                audioAtual.play().catch(erro => {
-                    console.error("Erro ao tocar:", erro);
+        // 3. FUNÇÃO QUE GERA OS BOTÕES
+        function criarBotoes(listaDeSons, idContainer) {
+            const container = document.getElementById(idContainer);
+            
+            listaDeSons.forEach(som => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-som';
+                btn.innerText = som.label;
+                btn.dataset.label = som.label; 
+                
+                btn.style.backgroundColor = som.cor;
+                btn.style.color = som.corTexto || '#ffffff';
+                
+                const caminhoCompleto = pastaSons + som.arquivo;
+                const audioObj = new Audio(caminhoCompleto);
+                
+                audioObj.addEventListener('ended', () => {
                     btn.classList.remove('tocando');
                     btn.innerText = btn.dataset.label;
                     audioAtual = null;
                     botaoAtivo = null;
                 });
-            };
-            grid.appendChild(btn);
-        });
+                
+                btn.onclick = () => {
+                    if (audioAtual && botaoAtivo === btn) {
+                        audioAtual.pause();
+                        audioAtual.currentTime = 0; 
+                        btn.classList.remove('tocando');
+                        btn.innerText = btn.dataset.label;
+                        audioAtual = null;
+                        botaoAtivo = null;
+                        return; 
+                    }
 
-        // 3. LÓGICA DO MICROFONE
+                    if (audioAtual && botaoAtivo !== btn) {
+                        audioAtual.pause();
+                        audioAtual.currentTime = 0;
+                        botaoAtivo.classList.remove('tocando');
+                        botaoAtivo.innerText = botaoAtivo.dataset.label; 
+                    }
+
+                    audioAtual = audioObj;
+                    botaoAtivo = btn;
+                    
+                    btn.classList.add('tocando');
+                    btn.innerText = "⏹️ Parar"; 
+                    
+                    audioAtual.play().catch(erro => {
+                        console.error("Erro ao tocar:", erro);
+                        btn.classList.remove('tocando');
+                        btn.innerText = btn.dataset.label;
+                        audioAtual = null;
+                        botaoAtivo = null;
+                    });
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Executa a função para as duas áreas
+        criarBotoes(sonsEvento, 'grid-eventos');
+        criarBotoes(musicas, 'grid-musicas');
+
+
+        // 4. LÓGICA DO MICROFONE (Fica travado na tela inteira)
         const btnMic = document.getElementById('btn-mic');
         let audioContext;
         let mediaStream;
@@ -195,18 +221,18 @@
             if (micAtivo) {
                 mediaStream.getTracks().forEach(track => track.stop());
                 audioContext.close();
-
+                
                 micAtivo = false;
                 btnMic.classList.remove('ativo');
                 btnMic.innerText = '🎙️ MICROFONE';
             } else {
                 try {
-                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ 
                         audio: {
-                            echoCancellation: false,
+                            echoCancellation: false, 
                             noiseSuppression: false,
                             autoGainControl: false
-                        }
+                        } 
                     });
 
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -225,5 +251,4 @@
         };
     </script>
 </body>
-
 </html>
